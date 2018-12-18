@@ -1,5 +1,6 @@
 # Caffe++
-☕️Assemble new layers to enhance Caffe.  
+# ☕️
+Assemble new layers to enhance Caffe.  
 The Caffe revision: ```99bd99795dcdf0b1d3086a8d67ab1782a8a08383```(commit [SHA](https://github.com/BVLC/caffe/tree/99bd99795dcdf0b1d3086a8d67ab1782a8a08383))
 
 # New Layers
@@ -71,6 +72,11 @@ layer {
   }
 }
 ```
+# Examples
+New layer examples are [here](https://github.com/becauseofAI/caffe-plus-plus/tree/master/examples).
+
+---
+
 # Caffe
 
 [![Build Status](https://travis-ci.org/BVLC/caffe.svg?branch=master)](https://travis-ci.org/BVLC/caffe)
