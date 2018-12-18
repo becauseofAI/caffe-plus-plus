@@ -1,2 +1,2 @@
-# ☕️Caffe++
-Assemble new layers to enhance Caffe.
+# Caffe++
+☕️Assemble new layers to enhance Caffe.
