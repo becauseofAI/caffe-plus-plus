@@ -4,10 +4,10 @@ Assemble new features to enhance Caffe.
 The Caffe revision: ```99bd99795dcdf0b1d3086a8d67ab1782a8a08383```(commit [SHA](https://github.com/BVLC/caffe/tree/99bd99795dcdf0b1d3086a8d67ab1782a8a08383))
 
 # New Layers
-> common: you can use directly   
-> special: need special net structure  
-> experienced: need to adjust parameters or try some times
-### common
+> Common: you can use directly   
+> Special: need special net structure  
+> Experienced: need to adjust parameters or try some times
+## Common
 - [CenterLoss](https://github.com/ydwen/caffe-face)
 ```prototxt
 layer {
@@ -91,7 +91,7 @@ layer {
   }
 }
 ```
-### special
+## Special
 - [Axpy](https://github.com/hujie-frank/SENet) (SENet)
 ```prototxt
 layer {
@@ -103,7 +103,7 @@ layer {
   top: "conv2_1"
 }
 ```
-### experienced
+## Experienced
 - [MarginInnerProduct](https://github.com/KaleidoZhouYN/Angular-Triplet-Loss) (Angular-Triplet-Loss based A-Softmax-Loss)
 ```prototxt
 layer {
