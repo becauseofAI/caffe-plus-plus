@@ -1,9 +1,13 @@
 # Caffe++☕️
-Assemble new layers to enhance Caffe.  
+Assemble new features to enhance Caffe.  
 
 The Caffe revision: ```99bd99795dcdf0b1d3086a8d67ab1782a8a08383```(commit [SHA](https://github.com/BVLC/caffe/tree/99bd99795dcdf0b1d3086a8d67ab1782a8a08383))
 
 # New Layers
+> common: you can use directly   
+> special: need special net structure  
+> experienced: need to adjust parameters or try some times
+### common
 - [CenterLoss](https://github.com/ydwen/caffe-face)
 ```prototxt
 layer {
@@ -60,6 +64,7 @@ layer {
   }
 }
 ```
+
 - [ShuffleChannel](https://github.com/farmingyard/ShuffleNet)
 ```prototxt
 layer {
@@ -72,8 +77,286 @@ layer {
   }
 }
 ```
-# Examples
+- [WeightedSoftmaxWithLoss](https://github.com/silver-rush/Weighted_Softmax_Loss)
+```prototxt
+layer {
+  name: "loss"
+  type: "WeightedSoftmaxWithLoss"
+  bottom: "fc_end"
+  bottom: "label"
+  top: "loss"
+  softmax_param {
+    pos_cid: 1
+    pos_mult: 2.0
+  }
+}
+```
+### special
+- [Axpy](https://github.com/hujie-frank/SENet) (SENet)
+```prototxt
+layer {
+  name: "conv2_1"
+  type: "Axpy"
+  bottom: "conv2_1_1x1_up"
+  bottom: "conv2_1_1x1_increase"
+  bottom: "conv2_1_1x1_proj"
+  top: "conv2_1"
+}
+```
+### experienced
+- [MarginInnerProduct](https://github.com/KaleidoZhouYN/Angular-Triplet-Loss) (Angular-Triplet-Loss based A-Softmax-Loss)
+```prototxt
+layer {
+  name: "fc6"
+  type: "MarginInnerProduct"
+  bottom: "fc5"
+  bottom: "label"
+  top: "fc6"
+  top: "lambda"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  margin_inner_product_param {
+    num_output: 10572
+    type: SINGLE
+    weight_filler {
+      type: "xavier"
+    }
+    base: 0
+    gamma: 0.12
+    power: 1
+    lambda_min: 3
+    iteration: 0
+    triplet: true
+    semihard: true
+  }
+}
+```
+- [InterClass](https://github.com/wy1iu/sphereface-plus)
+```prototxt
+layer {
+  name: "fc6"
+  type: "MarginInnerProduct"
+  bottom: "fc5"
+  bottom: "label"
+  top: "fc6"
+  top: "lambda"
+  param {
+    name: "fc6_w"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  margin_inner_product_param {
+    num_output: 10572
+    type: QUADRUPLE
+    weight_filler {
+      type: "xavier"
+    }
+    base: 1000
+    gamma: 0.12
+    power: 1
+    lambda_min: 5
+    iteration: 2000
+  }
+}
+layer {
+  name: "inter_class_dist_output"
+  type: "InterClass"
+  bottom: "fc5"
+  bottom: "label"
+  top: "maximize_inter_class_dist"
+  param {
+    name: "fc6_w"
+    lr_mult: 1
+    decay_mult: 1
+  }
+  inter_class_param {
+    num_output: 10572
+    type: AMONG
+    iteration: 16000
+    alpha_start_iter: 16001
+    alpha_start_value: 10 #among
+  }
+}
+layer {
+  name: "softmax_loss"
+  type: "SoftmaxWithLoss"
+  bottom: "fc6"
+  bottom: "label"
+  top: "softmax_loss"
+}
+```
+
+## Examples
 New layer examples are [here](https://github.com/becauseofAI/caffe-plus-plus/tree/master/examples).
+
+# New Functions
+### Multi-Label for Multi-Task
+- ImageData  
+
+train.txt
+```txt
+image/00001.jpg 0 5 1
+image/00002.jpg 0 9 -1
+image/00003.jpg 1 9 2
+image/00004.jpg 1 -1 0
+image/00005.jpg 1 0 2
+```
+train.prototxt
+```prototxt
+layer {
+  name: "data"
+  type: "ImageData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    scale: 0.00390625
+    mirror: true
+  }
+  image_data_param {
+    source: "/your/path/train.txt"  
+    root_folder: "/your/image/data/path"  
+    new_height: 224 
+    new_width: 224  
+    batch_size: 64 
+    is_color: true  
+    shuffle: true
+    label_dim: 3
+   }
+}
+
+layer {
+  name: "slice"
+  type: "Slice"
+  bottom: "label"
+  top: "label_1"
+  top: "label_2"
+  top: "label_3"
+  slice_param {
+    axis: 1
+    slice_point:1
+    slice_point:2
+  }
+}
+
+layer {
+  name: "fc7_1"
+  type: "InnerProduct"
+  bottom: "conv7_1"
+  top: "fc7_1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 5
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+} 
+
+layer {
+  name: "fc7_2"
+  type: "InnerProduct"
+  bottom: "conv7_2"
+  top: "fc7_2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+} 
+
+layer {
+  name: "fc7_3"
+  type: "InnerProduct"
+  bottom: "conv7_3"
+  top: "fc7_3"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+} 
+
+layer {
+  name: "loss1"
+  type: "SoftmaxWithLoss"
+  bottom: "fc7_1"
+  bottom: "label_1"
+  loss_param {
+    ignore_label: -1
+  }
+}
+
+layer {
+  name: "loss2"
+  type: "SoftmaxWithLoss"
+  bottom: "fc7_2"
+  bottom: "label_2"
+  loss_param {
+    ignore_label: -1
+  }
+}
+
+layer {
+  name: "loss3"
+  type: "SoftmaxWithLoss"
+  bottom: "fc7_3"
+  bottom: "label_3"
+  loss_param {
+    ignore_label: -1
+  }
+}
+```
+
+# New Performance
+- [pooling layer](https://github.com/hujie-frank/SENet)  
+
+The implementation for global average pooling on GPU supported by cuDNN and BVLC/caffe is less efficient. In this regard, the author re-implement the operation which achieves significant acceleration.
+```
+layer {
+  name: "conv2_1_global_pool"
+  type: "Pooling"
+  bottom: "conv2_1_1x1_increase"
+  top: "conv2_1_global_pool"
+  pooling_param {
+    pool: AVE
+    engine: CAFFE
+    global_pooling: true
+  }
+}
+```
 
 ---
 

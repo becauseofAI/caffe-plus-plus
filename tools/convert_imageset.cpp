@@ -81,6 +81,22 @@ int main(int argc, char** argv) {
     label = atoi(line.substr(pos + 1).c_str());
     lines.push_back(std::make_pair(line.substr(0, pos), label));
   }
+
+  // support LMDB multi-label for multi-task
+  // std::vector<std::pair<std::string, vector<int> > > lines;
+  // std::string line; 
+  // std::string filename; 
+  // int label;
+  // while (std::getline(infile, line)) {
+  //   std::istringstream iss(line);
+  //   iss >> filename;
+  //   std::vector<int> labels;
+  //   while(iss >> label) {
+  //      labels.push_back(label);
+  //   }
+  //   lines.push_back(std::make_pair(filename, labels));
+  // } 
+  
   if (FLAGS_shuffle) {
     // randomly shuffle data
     LOG(INFO) << "Shuffling data";

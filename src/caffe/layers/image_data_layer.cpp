@@ -36,16 +36,28 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   // Read the file with filenames and labels
   const string& source = this->layer_param_.image_data_param().source();
   LOG(INFO) << "Opening file " << source;
-  std::ifstream infile(source.c_str());
-  string line;
-  size_t pos;
-  int label;
-  while (std::getline(infile, line)) {
-    pos = line.find_last_of(' ');
-    label = atoi(line.substr(pos + 1).c_str());
-    lines_.push_back(std::make_pair(line.substr(0, pos), label));
-  }
+//  std::ifstream infile(source.c_str());
+//  string line;
+//  size_t pos;
+//  int label;
+//  while (std::getline(infile, line)) {
+//    pos = line.find_last_of(' ');
+//    label = atoi(line.substr(pos + 1).c_str());
+//    lines_.push_back(std::make_pair(line.substr(0, pos), label));
+//  }
 
+  // support multi-label for multi-task
+  std::ifstream infile(source.c_str());
+  string filename;
+  const int label_dim = this->layer_param_.image_data_param().label_dim();
+  while (infile >> filename) {
+    int* labels = new int[label_dim];
+    for(int i = 0; i < label_dim; ++i){
+        infile >> labels[i];
+    }
+    lines_.push_back(std::make_pair(filename, labels));
+  }
+  
   CHECK(!lines_.empty()) << "File is empty";
 
   if (this->layer_param_.image_data_param().shuffle()) {
@@ -91,11 +103,20 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       << top[0]->channels() << "," << top[0]->height() << ","
       << top[0]->width();
   // label
-  vector<int> label_shape(1, batch_size);
-  top[1]->Reshape(label_shape);
+//  vector<int> label_shape(1, batch_size);
+//  top[1]->Reshape(label_shape);
+//  for (int i = 0; i < this->prefetch_.size(); ++i) {
+//    this->prefetch_[i]->label_.Reshape(label_shape);
+//  }
+
+  // support multi-label for multi-task  
+  vector<int> label_shape(2);
+  label_shape[0] = batch_size;
+  label_shape[1] = label_dim;
+  top[1]->Reshape(label_shape); 
   for (int i = 0; i < this->prefetch_.size(); ++i) {
     this->prefetch_[i]->label_.Reshape(label_shape);
-  }
+  }  
 }
 
 template <typename Dtype>
@@ -121,6 +142,8 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   const int new_width = image_data_param.new_width();
   const bool is_color = image_data_param.is_color();
   string root_folder = image_data_param.root_folder();
+  // support multi-label for multi-task  
+  const int label_dim = image_data_param.label_dim();
 
   // Reshape according to the first image of each batch
   // on single input batches allows for inputs of varying dimension.
@@ -154,7 +177,12 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     this->data_transformer_->Transform(cv_img, &(this->transformed_data_));
     trans_time += timer.MicroSeconds();
 
-    prefetch_label[item_id] = lines_[lines_id_].second;
+    // prefetch_label[item_id] = lines_[lines_id_].second;
+    
+    // support multi-label for multi-task
+    for (int i = 0; i < label_dim; ++i) {
+        prefetch_label[item_id * label_dim + i] = lines_[lines_id_].second[i];
+    }    
     // go to the next iter
     lines_id_++;
     if (lines_id_ >= lines_size) {

@@ -140,6 +140,38 @@ bool ReadImageToDatum(const string& filename, const int label,
     return false;
   }
 }
+
+// support LMDB multi-label for multi-task
+// bool ReadImageToDatum(const string& filename, const vector<int> label,
+//     const int height, const int width, const bool is_color,
+//     const std::string & encoding, Datum* datum) {
+//   cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color);
+//   if (cv_img.data) {
+//     if (encoding.size()) {
+//       if ( (cv_img.channels() == 3) == is_color && !height && !width &&
+//           matchExt(filename, encoding) )
+//         return ReadFileToDatum(filename, label, datum);
+//       std::vector<uchar> buf;
+//       cv::imencode("."+encoding, cv_img, buf);
+//       datum->set_data(std::string(reinterpret_cast<char*>(&buf[0]),
+//                       buf.size()));
+//       datum->clear_labels();
+//       for (int i = 0; i < label.size(); i++){
+//          datum->add_labels(label[i]);
+//       }     
+//       datum->set_encoded(true);
+//       return true;
+//     }
+//     CVMatToDatum(cv_img, datum);
+//     datum->clear_labels();
+//     for (int i = 0; i < label.size(); i++){
+//        datum->add_labels(label[i]);
+//     }  
+//     return true;
+//   } else {
+//     return false;
+//   }
+// }
 #endif  // USE_OPENCV
 
 bool ReadFileToDatum(const string& filename, const int label,
@@ -162,6 +194,29 @@ bool ReadFileToDatum(const string& filename, const int label,
   }
 }
 
+// support LMDB multi-label for multi-task
+// bool ReadFileToDatum(const string& filename, const vector<int> label,
+//     Datum* datum) {
+//   std::streampos size;
+
+//   fstream file(filename.c_str(), ios::in|ios::binary|ios::ate);
+//   if (file.is_open()) {
+//     size = file.tellg();
+//     std::string buffer(size, ' ');
+//     file.seekg(0, ios::beg);
+//     file.read(&buffer[0], size);
+//     file.close();
+//     datum->set_data(buffer);
+//     datum->clear_labels();
+//     for (int i = 0; i < label.size(); i++){
+//        datum->add_labels(label[i]);
+//     }  
+//     datum->set_encoded(true);
+//     return true;
+//   } else {
+//     return false;
+//   }
+// }
 #ifdef USE_OPENCV
 cv::Mat DecodeDatumToCVMatNative(const Datum& datum) {
   cv::Mat cv_img;
