@@ -4,9 +4,9 @@ Assemble new features to enhance Caffe.
 The Caffe revision: ```99bd99795dcdf0b1d3086a8d67ab1782a8a08383```(commit [SHA](https://github.com/BVLC/caffe/tree/99bd99795dcdf0b1d3086a8d67ab1782a8a08383))
 
 # New Layers
-> Common: you can use directly   
-> Special: need special net structure  
-> Experienced: need to adjust parameters or try some times
+> `Common`: you can use directly   
+> `Special`: need special net structure  
+> `Experienced`: need to adjust parameters or try some times
 ## Common
 - [CenterLoss](https://github.com/ydwen/caffe-face)
 ```prototxt
